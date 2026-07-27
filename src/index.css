@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top, #0a1428 0%, #020817 60%, #000000 100%);
+  color: #e6f7ff;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(2, 8, 23, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00e5ff 0%, #1e90ff 100%);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #29b6f6 0%, #0288d1 100%);
+}
+
+@layer components {
+  .glass {
+    background: rgba(10, 20, 40, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 229, 255, 0.18);
+  }
+
+  .glass-strong {
+    background: rgba(10, 20, 40, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+  }
+
+  .neon-border {
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.25), inset 0 0 12px rgba(0, 229, 255, 0.08);
+  }
+
+  .neon-text {
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.7);
+  }
+
+  .neon-text-green {
+    text-shadow: 0 0 8px rgba(0, 255, 159, 0.7);
+  }
+
+  .neon-text-red {
+    text-shadow: 0 0 8px rgba(255, 45, 85, 0.7);
+  }
+
+  .cyber-btn {
+    position: relative;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(30, 144, 255, 0.15) 100%);
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    color: #00e5ff;
+    transition: all 0.3s ease;
+  }
+  .cyber-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.3) 0%, rgba(30, 144, 255, 0.3) 100%);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .cyber-card {
+    background: linear-gradient(135deg, rgba(15, 31, 61, 0.6) 0%, rgba(2, 8, 23, 0.6) 100%);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    transition: all 0.3s ease;
+  }
+  .cyber-card:hover {
+    border-color: rgba(0, 229, 255, 0.35);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+  }
+}
+
+/* Leaflet dark map */
+.leaflet-container {
+  background: #020817 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+.leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.8) contrast(0.9) saturate(1.5);
+}
+.leaflet-control-attribution {
+  background: rgba(2, 8, 23, 0.8) !important;
+  color: #4fc3f7 !important;
+}
+.leaflet-control-attribution a {
+  color: #00e5ff !important;
+}
+.leaflet-bar a {
+  background: rgba(10, 20, 40, 0.9) !important;
+  color: #00e5ff !important;
+  border-color: rgba(0, 229, 255, 0.3) !important;
+}
+.leaflet-popup-content-wrapper {
+  background: rgba(10, 20, 40, 0.95) !important;
+  color: #e6f7ff !important;
+  border: 1px solid rgba(0, 229, 255, 0.4) !important;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.3) !important;
+}
+.leaflet-popup-tip {
+  background: rgba(10, 20, 40, 0.95) !important;
+}
+
+/* Animated warning wave */
+@keyframes warning-wave {
+  0% { background-position: 0 0; }
+  100% { background-position: 200px 0; }
+}
+.warning-strip {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 45, 85, 0.8),
+    rgba(255, 45, 85, 0.8) 10px,
+    rgba(0, 0, 0, 0.6) 10px,
+    rgba(0, 0, 0, 0.6) 20px
+  );
+  background-size: 200% 100%;
+  animation: warning-wave 1.5s linear infinite;
+}
+
+/* SOS pulse */
+@keyframes sos-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+}
+.sos-pulse {
+  animation: sos-pulse 1s ease-in-out infinite;
+}
+
+/* Scanline effect */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+}
+
+/* Counter animation */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Focus styles */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: rgba(0, 229, 255, 0.6) !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3) !important;
+}
+
+/* Hide number input arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
