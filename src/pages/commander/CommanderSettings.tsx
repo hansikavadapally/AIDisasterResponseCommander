@@ -24,7 +24,7 @@ export default function CommanderSettings() {
             </div>
             <div>
               <p className="text-white font-semibold">{profile?.display_name}</p>
-              <p className="text-xs text-cyber-cyan font-mono">CMD001</p>
+              <p className="text-xs text-cyber-cyan font-mono">{profile?.commander_id ?? 'CMD-???'}</p>
               <p className="text-xs text-ocean-200/70">{profile?.email}</p>
             </div>
           </div>

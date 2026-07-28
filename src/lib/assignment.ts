@@ -1,25 +1,47 @@
 import { supabase } from '@/lib/supabase';
-import type { Robot, Drone, Complaint } from '@/lib/supabase';
+import type { Robot, Drone, Complaint, Profile } from '@/lib/supabase';
 
 type AssignResult = { error: string | null };
 
-// Assigns a robot and/or drone to a complaint. Updates the complaint, marks
-// the robot/drone as assigned, creates a mission, sends notifications to both
-// the client and the commander, and adds an activity log entry.
+// Assigns a robot and/or drone to a complaint atomically. Inserts into the
+// `assignments` table (which has a UNIQUE constraint on complaint_id, preventing
+// duplicate assignments). A database trigger then handles notifications to all
+// commanders and the client, plus the activity log. We also update the complaint
+// status and mark the robot/drone as assigned.
 export async function assignResourcesToComplaint(params: {
   complaint: Complaint;
   robot: Robot | null;
   drone: Drone | null;
+  commander: Profile;
   commanderNotes?: string;
 }): Promise<AssignResult> {
-  const { complaint, robot, drone, commanderNotes } = params;
+  const { complaint, robot, drone, commander, commanderNotes } = params;
   if (!robot && !drone) return { error: 'Select at least one robot or drone.' };
 
-  // Compute ETA and distance (mock but deterministic)
   const eta = robot ? Math.floor(Math.random() * 25) + 5 : 15;
   const distance = Math.round((Math.random() * 20 + 2) * 10) / 10;
+  const now = new Date().toISOString();
 
-  // 1. Update the complaint
+  // 1. Insert into assignments table — the UNIQUE constraint on complaint_id
+  //    prevents duplicate assignments. If another commander assigned first,
+  //    this insert fails and we return the error.
+  const { error: aErr } = await supabase.from('assignments').insert({
+    complaint_id: complaint.id,
+    commander_id: commander.id,
+    commander_name: commander.display_name,
+    commander_display_id: commander.commander_id ?? 'CMD-???',
+    robot_id: robot?.robot_id ?? null,
+    drone_id: drone?.drone_id ?? null,
+    assigned_at: now,
+  });
+  if (aErr) {
+    if (aErr.code === '23505') {
+      return { error: 'This complaint has already been assigned by another commander.' };
+    }
+    return { error: aErr.message };
+  }
+
+  // 2. Update the complaint status
   const { error: cErr } = await supabase
     .from('complaints')
     .update({
@@ -29,12 +51,12 @@ export async function assignResourcesToComplaint(params: {
       commander_notes: commanderNotes ?? null,
       eta_min: eta,
       distance_km: distance,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     })
     .eq('id', complaint.id);
   if (cErr) return { error: cErr.message };
 
-  // 2. Mark robot as assigned
+  // 3. Mark robot as assigned
   if (robot) {
     const { error: rErr } = await supabase
       .from('robots')
@@ -44,26 +66,26 @@ export async function assignResourcesToComplaint(params: {
         current_mission: `${complaint.emergency_type} Rescue - ${complaint.title}`,
         status: 'Assigned',
         last_assigned_client: complaint.client_name,
-        last_updated: new Date().toISOString(),
+        last_updated: now,
       })
       .eq('robot_id', robot.robot_id);
     if (rErr) console.error('robot update error', rErr);
   }
 
-  // 3. Mark drone as assigned
+  // 4. Mark drone as assigned
   if (drone) {
     const { error: dErr } = await supabase
       .from('drones')
       .update({
         status: 'Monitoring',
         mission: `Surveillance for ${complaint.emergency_type} - ${complaint.title}`,
-        last_updated: new Date().toISOString(),
+        last_updated: now,
       })
       .eq('drone_id', drone.drone_id);
     if (dErr) console.error('drone update error', dErr);
   }
 
-  // 4. Create mission
+  // 5. Create mission
   const missionName = `${complaint.emergency_type} Rescue - ${complaint.title}`;
   const { error: mErr } = await supabase.from('missions').insert({
     complaint_id: complaint.id,
@@ -74,36 +96,11 @@ export async function assignResourcesToComplaint(params: {
     status: 'Assigned',
     priority: complaint.priority,
     progress: 10,
-    started_at: new Date().toISOString(),
+    started_at: now,
   });
   if (mErr) console.error('mission insert error', mErr);
 
-  // 5. Notify the client
-  const robotText = robot ? `${robot.robot_name} (${robot.robot_id})` : '';
-  const droneText = drone ? `${drone.drone_name} (${drone.drone_id})` : '';
-  const assignedText = [robotText, droneText].filter(Boolean).join(' + ');
-  await supabase.from('notifications').insert({
-    user_id: complaint.client_id,
-    role: 'client',
-    type: 'assignment',
-    title: 'Rescue Resource Assigned',
-    message: `${assignedText} has been assigned to your request. ETA: ${eta} minutes. Distance: ${distance} km.`,
-  });
-
-  // 6. Notify all commanders
-  await supabase.from('notifications').insert({
-    role: 'commander',
-    type: 'assignment',
-    title: 'Resource Assigned',
-    message: `${assignedText} assigned to ${complaint.client_name} for "${complaint.title}".`,
-  });
-
-  // 7. Activity log
-  await supabase.from('activity_logs').insert({
-    type: 'assignment',
-    message: `${assignedText} assigned to ${complaint.client_name} for ${complaint.emergency_type} rescue`,
-    severity: 'info',
-  });
+  // Notifications + activity log are handled by the DB trigger on assignments.
 
   return { error: null };
 }
@@ -134,13 +131,11 @@ export async function advanceComplaintStatus(complaintId: string): Promise<Assig
     .eq('id', complaintId);
   if (error) return { error: error.message };
 
-  // Update mission progress
   await supabase
     .from('missions')
     .update({ progress: progressMap[next] ?? 0, status: next === 'Mission Completed' ? 'Completed' : 'Travelling', updated_at: new Date().toISOString() })
     .eq('complaint_id', complaintId);
 
-  // Notify client
   await supabase.from('notifications').insert({
     user_id: current.client_id,
     role: 'client',
@@ -149,7 +144,6 @@ export async function advanceComplaintStatus(complaintId: string): Promise<Assig
     message: `Your rescue status updated to: ${next}.`,
   });
 
-  // Activity log
   await supabase.from('activity_logs').insert({
     type: 'mission',
     message: `Complaint "${current.title}" status updated to ${next}`,

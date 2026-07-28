@@ -2,11 +2,22 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, X, Bot, Plane, Search, Filter, Send, AlertTriangle } from 'lucide-react';
 import { useCommanderData } from '@/hooks/useData';
+import { useAuth } from '@/context/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
 import { assignResourcesToComplaint, advanceComplaintStatus } from '@/lib/assignment';
 import type { Complaint, Robot, Drone } from '@/lib/supabase';
 
+type Assignment = {
+  id: string;
+  commander_name: string;
+  commander_display_id: string;
+  robot_id: string | null;
+  drone_id: string | null;
+  assigned_at: string;
+};
+
 export default function ClientRequests() {
+  const { profile } = useAuth();
   const { complaints, robots, drones, loading } = useCommanderData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -16,6 +27,7 @@ export default function ClientRequests() {
   const [notes, setNotes] = useState('');
   const [assigning, setAssigning] = useState(false);
   const [assignMsg, setAssignMsg] = useState<string | null>(null);
+  const [assignment, setAssignment] = useState<Assignment | null>(null);
 
   const filtered = useMemo(() => {
     return complaints.filter((c) =>
@@ -33,7 +45,7 @@ export default function ClientRequests() {
     setAssignMsg(null);
     const robot = assignRobotId ? robots.find((r) => r.robot_id === assignRobotId) ?? null : null;
     const drone = assignDroneId ? drones.find((d) => d.drone_id === assignDroneId) ?? null : null;
-    const { error } = await assignResourcesToComplaint({ complaint: selected, robot, drone, commanderNotes: notes });
+    const { error } = await assignResourcesToComplaint({ complaint: selected, robot, drone, commander: profile!, commanderNotes: notes });
     setAssigning(false);
     if (error) {
       setAssignMsg(`Error: ${error}`);
@@ -46,8 +58,21 @@ export default function ClientRequests() {
     }
   };
 
-  const handleAdvance = async (id: string) => {
-    await advanceComplaintStatus(id);
+  const openModal = (c: Complaint) => {
+    setSelected(c);
+    setAssignMsg(null);
+    setAssignRobotId(c.assigned_robot_id ?? '');
+    setAssignDroneId(c.assigned_drone_id ?? '');
+    setNotes(c.commander_notes ?? '');
+    setAssignment(null);
+    if (c.status !== 'Pending') {
+      supabase
+        .from('assignments')
+        .select('id, commander_name, commander_display_id, robot_id, drone_id, assigned_at')
+        .eq('complaint_id', c.id)
+        .maybeSingle()
+        .then(({ data }) => setAssignment(data as Assignment | null));
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64 text-cyber-cyan animate-pulse">Loading requests...</div>;
@@ -109,7 +134,7 @@ export default function ClientRequests() {
             <div className="flex items-center justify-between">
               <StatusBadge status={c.status} size="xs" />
               <button
-                onClick={() => { setSelected(c); setAssignMsg(null); setAssignRobotId(c.assigned_robot_id ?? ''); setAssignDroneId(c.assigned_drone_id ?? ''); setNotes(c.commander_notes ?? ''); }}
+                onClick={() => openModal(c)}
                 className="rounded-lg px-3 py-1.5 text-xs cyber-btn font-semibold"
               >
                 {c.status === 'Pending' ? 'Assign' : 'Details'}
@@ -159,6 +184,19 @@ export default function ClientRequests() {
                   <div><p className="text-xs uppercase tracking-wider text-ocean-200/60">Location</p><p className="text-white">{selected.location ?? 'N/A'}</p></div>
                   <div><p className="text-xs uppercase tracking-wider text-ocean-200/60">Submitted</p><p className="text-white">{new Date(selected.created_at).toLocaleString()}</p></div>
                 </div>
+
+                {assignment && (
+                  <div className="glass rounded-lg p-3 border border-cyber-cyan/20">
+                    <p className="text-xs uppercase tracking-wider text-ocean-200/60 mb-1">Assigned By</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-cyber-cyan font-mono">{assignment.commander_display_id}</p>
+                      <p className="text-sm text-white">{assignment.commander_name}</p>
+                    </div>
+                    <p className="text-[10px] text-ocean-200/50 mt-1">
+                      {new Date(assignment.assigned_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
 
                 {selected.status === 'Pending' ? (
                   <>

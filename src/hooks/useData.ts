@@ -4,7 +4,7 @@ import type { Robot, Drone, Complaint, Mission, Notification, Alert, ActivityLog
 
 // Central data hook for the commander dashboard: loads all operational data
 // and subscribes to realtime changes so the dashboard stays live.
-export function useCommanderData() {
+export function useCommanderData(commanderId?: string) {
   const [robots, setRobots] = useState<Robot[]>([]);
   const [drones, setDrones] = useState<Drone[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -16,6 +16,10 @@ export function useCommanderData() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    const notifQuery = commanderId
+      ? supabase.from('notifications').select('*').eq('user_id', commanderId).order('created_at', { ascending: false }).limit(50)
+      : supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+
     const [
       { data: rb },
       { data: dr },
@@ -30,7 +34,7 @@ export function useCommanderData() {
       supabase.from('drones').select('*').order('drone_id'),
       supabase.from('complaints').select('*').order('created_at', { ascending: false }),
       supabase.from('missions').select('*').order('created_at', { ascending: false }),
-      supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50),
+      notifQuery,
       supabase.from('alerts').select('*').order('created_at', { ascending: false }),
       supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('resources').select('*').order('id'),
@@ -44,7 +48,7 @@ export function useCommanderData() {
     setActivityLogs((ac as ActivityLog[]) ?? []);
     setResources((rs as Resource[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [commanderId]);
 
   useEffect(() => {
     load();

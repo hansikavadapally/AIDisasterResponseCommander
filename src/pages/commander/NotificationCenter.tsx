@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Bell, CheckCheck, Filter, AlertTriangle, Bot, Plane, ShieldAlert, Activity, Battery, Check, Zap } from 'lucide-react';
 import { useCommanderData } from '@/hooks/useData';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 const typeIcons: Record<string, typeof Bell> = {
   complaint: AlertTriangle,
@@ -27,7 +28,8 @@ const typeColors: Record<string, string> = {
 };
 
 export default function NotificationCenter() {
-  const { notifications, loading } = useCommanderData();
+  const { profile } = useAuth();
+  const { notifications, loading } = useCommanderData(profile?.id);
   const [filter, setFilter] = useState('All');
 
   const filtered = useMemo(() => {

@@ -8,6 +8,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
 import CommanderNotificationDropdown from '@/components/CommanderNotificationDropdown';
+import CommanderToasts from '@/components/CommanderToasts';
 import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
 import LiveClock from '@/components/LiveClock';
 import { supabase } from '@/lib/supabase';
@@ -96,6 +97,7 @@ export default function CommanderLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-surface-900">
       <EmergencyAlertSystem alerts={alerts} onDismiss={() => {}} />
+      <CommanderToasts notifications={notifications} />
 
       {/* Top bar */}
       <header className="sticky top-0 z-30 glass-strong border-b border-cyber-cyan/20">
@@ -164,7 +166,7 @@ export default function CommanderLayout() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{profile?.display_name}</p>
-                <p className="text-[10px] text-cyber-cyan uppercase tracking-wider">Commander • CMD001</p>
+                <p className="text-[10px] text-cyber-cyan uppercase tracking-wider">Commander • {profile?.commander_id ?? 'CMD-???'}</p>
               </div>
             </div>
           </div>
