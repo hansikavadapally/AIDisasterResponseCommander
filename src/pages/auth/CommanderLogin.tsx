@@ -106,15 +106,7 @@ export default function CommanderLogin() {
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-cyber-cyan/15">
-            <div className="rounded-lg bg-cyber-cyan/5 border border-cyber-cyan/20 p-3 text-xs text-ocean-200/70">
-              <p className="font-semibold text-cyber-cyan mb-1">Demo Credentials</p>
-              <p className="font-mono">Commander ID: CMD001</p>
-              <p className="font-mono">Password: Commander@123</p>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between text-sm">
+          <div className="mt-6 flex items-center justify-between text-sm">
             <Link to="/" className="flex items-center gap-1 text-ocean-200/70 hover:text-cyber-cyan transition">
               <ArrowLeft size={14} /> Back
             </Link>

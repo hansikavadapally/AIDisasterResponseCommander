@@ -122,15 +122,7 @@ export default function ClientLogin() {
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-cyber-green/15">
-            <div className="rounded-lg bg-cyber-green/5 border border-cyber-green/20 p-3 text-xs text-ocean-200/70">
-              <p className="font-semibold text-cyber-green mb-1">Demo Client Account</p>
-              <p className="font-mono">Email: client1@roboweb.ai</p>
-              <p className="font-mono">Password: Client@123</p>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between text-sm">
+          <div className="mt-6 flex items-center justify-between text-sm">
             <Link to="/" className="flex items-center gap-1 text-ocean-200/70 hover:text-cyber-green transition">
               <ArrowLeft size={14} /> Back
             </Link>
