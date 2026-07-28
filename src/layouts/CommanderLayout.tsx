@@ -8,6 +8,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
 import NotificationPanel from '@/components/NotificationPanel';
+import LiveNotificationToasts from '@/components/LiveNotificationToasts';
 import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
 import LiveClock from '@/components/LiveClock';
 import { supabase } from '@/lib/supabase';
@@ -111,7 +112,6 @@ export default function CommanderLayout() {
               <span className="font-mono">LIVE</span>
               <LiveClock />
             </div>
-            <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onMarkRead={markRead} />
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-cyber-red border border-cyber-red/30 hover:bg-cyber-red/10 transition"
@@ -190,6 +190,9 @@ export default function CommanderLayout() {
           <Outlet />
         </main>
       </div>
+
+      <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onMarkRead={markRead} />
+      <LiveNotificationToasts notifications={notifications} />
     </div>
   );
 }
