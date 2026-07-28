@@ -116,9 +116,7 @@ export default function CommanderNotificationDropdown({ notifications, onMarkAll
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.96 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              style={{ top: pos.top, right: pos.right }}
               className="fixed z-[999] w-[360px] max-h-[520px] flex flex-col rounded-2xl border border-cyber-cyan/30 shadow-glow-cyan overflow-hidden"
-              // inline styles for the glass effect since we're outside the layout's CSS context
               style={{
                 top: pos.top,
                 right: pos.right,
