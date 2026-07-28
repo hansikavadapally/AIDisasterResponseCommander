@@ -67,19 +67,6 @@ export default function SubmitComplaint() {
       setError(error.message);
       return;
     }
-    // Notify commander
-    await supabase.from('notifications').insert({
-      role: 'commander',
-      type: 'complaint',
-      title: 'New Complaint Received',
-      message: `${profile.display_name} submitted a ${emergencyType} emergency: ${title}`,
-    });
-    // Activity log
-    await supabase.from('activity_logs').insert({
-      type: 'complaint',
-      message: `${profile.display_name} submitted a ${emergencyType} emergency request: ${title}`,
-      severity: priority === 'Critical' ? 'critical' : 'info',
-    });
     setSuccess(true);
     setTitle('');
     setDescription('');

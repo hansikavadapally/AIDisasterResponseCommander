@@ -33,10 +33,11 @@ export default function CommanderLayout() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   useEffect(() => {
-    // Load notifications + alerts, subscribe to realtime
+    // Load notifications for this commander only
     supabase
       .from('notifications')
       .select('*')
+      .eq('user_id', profile?.id ?? '')
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data }) => data && setNotifications(data as Notification[]));
@@ -52,7 +53,10 @@ export default function CommanderLayout() {
       .channel('commander-notifications')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
         if (payload.eventType === 'INSERT' && payload.new) {
-          setNotifications((prev) => [payload.new as Notification, ...prev].slice(0, 50));
+          const newRow = payload.new as Notification;
+          if (newRow.user_id === profile?.id) {
+            setNotifications((prev) => [newRow, ...prev].slice(0, 50));
+          }
         }
       })
       .subscribe();
