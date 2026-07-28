@@ -8,7 +8,6 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
 import CommanderNotificationDropdown from '@/components/CommanderNotificationDropdown';
-import LiveNotificationToasts from '@/components/LiveNotificationToasts';
 import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
 import LiveClock from '@/components/LiveClock';
 import { supabase } from '@/lib/supabase';
@@ -192,7 +191,6 @@ export default function CommanderLayout() {
         </main>
       </div>
 
-      <LiveNotificationToasts notifications={notifications} />
     </div>
   );
 }
