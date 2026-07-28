@@ -85,7 +85,6 @@ export default function ClientLayout() {
               <span className="font-mono">LIVE</span>
               <LiveClock />
             </div>
-            <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onMarkRead={markRead} />
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-cyber-red border border-cyber-red/30 hover:bg-cyber-red/10 transition"
@@ -155,6 +154,7 @@ export default function ClientLayout() {
           <Outlet />
         </main>
       </div>
+      <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onMarkRead={markRead} />
     </div>
   );
 }
