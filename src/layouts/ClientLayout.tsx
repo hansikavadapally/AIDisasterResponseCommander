@@ -7,10 +7,9 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
 import NotificationPanel from '@/components/NotificationPanel';
-import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
 import LiveClock from '@/components/LiveClock';
 import { supabase } from '@/lib/supabase';
-import type { Notification, Alert } from '@/lib/supabase';
+import type { Notification } from '@/lib/supabase';
 
 const navItems = [
   { to: '/client/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,7 +25,6 @@ export default function ClientLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
 
   useEffect(() => {
     supabase
@@ -35,14 +33,6 @@ export default function ClientLayout() {
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data }) => data && setNotifications((data as Notification[]).filter((n) => n.user_id === profile?.id || n.role === 'client')));
-
-    supabase
-      .from('alerts')
-      .select('*')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-      .limit(10)
-      .then(({ data }) => data && setAlerts(data as Alert[]));
 
     const notifSub = supabase
       .channel('client-notifications')
@@ -54,16 +44,8 @@ export default function ClientLayout() {
       })
       .subscribe();
 
-    const alertSub = supabase
-      .channel('client-alerts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
-        setAlerts((prev) => [payload.new as Alert, ...prev]);
-      })
-      .subscribe();
-
     return () => {
       notifSub.unsubscribe();
-      alertSub.unsubscribe();
     };
   }, [profile?.id]);
 
@@ -86,8 +68,6 @@ export default function ClientLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-900">
-      <EmergencyAlertSystem alerts={alerts} onDismiss={() => {}} />
-
       <header className="sticky top-0 z-30 glass-strong border-b border-cyber-cyan/20">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">

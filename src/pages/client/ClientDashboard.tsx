@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Bot, Plane, Activity, AlertTriangle, Bell, Clock, Battery, MapPin, Gauge, CheckCircle2, Phone } from 'lucide-react';
+import { FileText, Bot, Plane, Activity, Bell, Clock, Battery, MapPin, Gauge, CheckCircle2, Phone } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useClientData } from '@/hooks/useData';
 import { supabase } from '@/lib/supabase';
@@ -12,7 +12,7 @@ import AnimatedCounter from '@/components/AnimatedCounter';
 
 export default function ClientDashboard() {
   const { profile, user } = useAuth();
-  const { complaints, missions, notifications, alerts, loading } = useClientData(user?.id);
+  const { complaints, missions, notifications, loading } = useClientData(user?.id);
   const [robot, setRobot] = useState<Robot | null>(null);
   const [drone, setDrone] = useState<Drone | null>(null);
 
@@ -47,27 +47,7 @@ export default function ClientDashboard() {
         <Card title="Total Requests" value={stats.total} icon={<FileText size={18} />} color="text-cyber-cyan" />
         <Card title="Active" value={stats.active} icon={<Activity size={18} />} color="text-cyber-blue" />
         <Card title="Completed" value={stats.completed} icon={<CheckCircle2 size={18} />} color="text-cyber-green" />
-        <Card title="Unread Alerts" value={stats.unread} icon={<Bell size={18} />} color="text-cyber-orange" />
       </div>
-
-      {/* Emergency alerts */}
-      {alerts.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-4 border border-cyber-red/30">
-          <h3 className="font-display font-bold text-cyber-red mb-3 flex items-center gap-2"><AlertTriangle size={16} className="sos-pulse" /> Emergency Alerts in Your Area</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {alerts.slice(0, 6).map((a) => (
-              <div key={a.id} className="rounded-xl bg-cyber-red/10 border border-cyber-red/30 p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-white">{a.alert_type}</span>
-                  <StatusBadge status={a.severity} size="xs" />
-                </div>
-                <p className="text-xs text-ocean-200/70">{a.location}</p>
-                <p className="text-xs text-ocean-200/60 mt-1 line-clamp-2">{a.description}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
 
       {/* Active rescue + assigned robot */}
       {activeComplaint ? (
